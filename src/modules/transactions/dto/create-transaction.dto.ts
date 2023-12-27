@@ -27,7 +27,7 @@ export class CreateTransactionDto {
   @IsNumber()
   @IsNotEmpty()
   @IsPositive()
-  value: string;
+  value: number;
 
   @IsNotEmpty()
   @IsDateString()
