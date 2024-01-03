@@ -5,11 +5,12 @@ import { TransactionsRepository } from 'src/shared/database/repositories/transac
 import { ValidateBankAccountOwnerShipService } from '../../bank-accounts/services/validate-bank-account-ownership.service';
 import { ValidateCategoryOwnerShipService } from '../../categories/services/validate-category-ownership.service';
 import { ValidateTransactionOwnerShipService } from './validate-transaction-ownership.service';
+import { TransactionType } from '../entities/Transaction';
 
 @Injectable()
 export class TransactionsService {
   constructor(
-    private readonly transactionRepo: TransactionsRepository,
+    private readonly transactionsRepo: TransactionsRepository,
     private readonly validateBankAccountOwnershipService: ValidateBankAccountOwnerShipService,
     private readonly validateCategoryOwnershipService: ValidateCategoryOwnerShipService,
     private readonly validateTransactionOwnershipService: ValidateTransactionOwnerShipService,
@@ -21,7 +22,7 @@ export class TransactionsService {
 
     await this.validateEntitiesOwnership({ userId, bankAccountId, categoryId });
 
-    return this.transactionRepo.create({
+    return this.transactionsRepo.create({
       data: {
         userId,
         bankAccountId,
@@ -34,9 +35,25 @@ export class TransactionsService {
     });
   }
 
-  findAllByUserId(userId: string) {
-    return this.transactionRepo.findMany({
-      where: { userId },
+  findAllByUserId(
+    userId: string,
+    filters: {
+      month: number;
+      year: number;
+      bankAccountId?: string;
+      type?: TransactionType;
+    },
+  ) {
+    return this.transactionsRepo.findMany({
+      where: {
+        userId,
+        bankAccountId: filters.bankAccountId,
+        type: filters.type,
+        date: {
+          gte: new Date(Date.UTC(filters.year, filters.month)),
+          lt: new Date(Date.UTC(filters.year, filters.month + 1)),
+        },
+      },
     });
   }
 
@@ -55,14 +72,20 @@ export class TransactionsService {
       transactionId,
     });
 
-    return this.transactionRepo.update({
+    return this.transactionsRepo.update({
       where: { id: transactionId },
       data: { bankAccountId, categoryId, date, name, type, value },
     });
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} transaction`;
+  async delete(userId: string, transactionId: string) {
+    await this.validateEntitiesOwnership({ userId, transactionId });
+
+    await this.transactionsRepo.delete({
+      where: { id: transactionId },
+    });
+
+    return null;
   }
 
   private async validateEntitiesOwnership({
@@ -72,8 +95,8 @@ export class TransactionsService {
     transactionId,
   }: {
     userId: string;
-    bankAccountId: string;
-    categoryId: string;
+    bankAccountId?: string;
+    categoryId?: string;
     transactionId?: string;
   }) {
     await Promise.all([
@@ -82,8 +105,13 @@ export class TransactionsService {
           userId,
           transactionId,
         ),
-      this.validateBankAccountOwnershipService.validate(userId, bankAccountId),
-      this.validateCategoryOwnershipService.validate(userId, categoryId),
+      bankAccountId &&
+        this.validateBankAccountOwnershipService.validate(
+          userId,
+          bankAccountId,
+        ),
+      categoryId &&
+        this.validateCategoryOwnershipService.validate(userId, categoryId),
     ]);
   }
 }
