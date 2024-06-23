@@ -6,7 +6,7 @@ export class UsersService {
   constructor(private readonly usersRepo: UsersRepository) {}
 
   getUserById(userId: string) {
-    return this.usersRepo.findUnique({
+    return this.usersRepo.findFirst({
       where: { id: userId },
       select: {
         id: true,
