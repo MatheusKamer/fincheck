@@ -7,7 +7,7 @@ export class ValidateCategoryOwnerShipService {
 
   async validate(userId: string, categoryId: string) {
     const isOwner = await this.categoriesRepo.findFirst({
-      where: { id: categoryId, userId },
+      where: { userId, id: categoryId },
     });
 
     if (!isOwner) {
