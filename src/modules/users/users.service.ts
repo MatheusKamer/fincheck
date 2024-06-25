@@ -5,8 +5,8 @@ import { UsersRepository } from 'src/shared/database/repositories/users.reposito
 export class UsersService {
   constructor(private readonly usersRepo: UsersRepository) {}
 
-  getUserById(userId: string) {
-    return this.usersRepo.findUnique({
+  async getUserById(userId: string) {
+    const user = await this.usersRepo.findUnique({
       where: { id: userId },
       select: {
         id: true,
@@ -14,5 +14,7 @@ export class UsersService {
         email: true,
       },
     });
+
+    return user;
   }
 }
