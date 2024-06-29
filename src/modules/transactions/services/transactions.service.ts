@@ -35,7 +35,7 @@ export class TransactionsService {
     });
   }
 
-  async findAllByUserId(
+  findAllByUserId(
     userId: string,
     filters: {
       month: number;
@@ -44,10 +44,6 @@ export class TransactionsService {
       type?: TransactionType;
     },
   ) {
-    const bankAccountId = filters.bankAccountId;
-
-    await this.validateEntitiesOwnership({ userId, bankAccountId });
-
     return this.transactionsRepo.findMany({
       where: {
         userId,
