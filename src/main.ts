@@ -1,21 +1,21 @@
+import 'dotenv/config';
+
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
-import { ExpressAdapter } from '@nestjs/platform-express';
-import * as express from 'express';
-
-const server = express();
+import { ValidationPipe } from '@nestjs/common';
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule, new ExpressAdapter(server));
+  const app = await NestFactory.create(AppModule);
+
+  app.useGlobalPipes(new ValidationPipe());
   app.enableCors({
     origin: 'https://fincheck-frontend-92rs.onrender.com',
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
     allowedHeaders: 'Content-Type, Authorization',
     credentials: true,
   });
-  await app.init();
+
+  await app.listen(3000);
 }
 
 bootstrap();
-
-export default server;
