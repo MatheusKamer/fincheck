@@ -1,13 +1,13 @@
+import 'dotenv/config';
+
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
-import { ExpressAdapter } from '@nestjs/platform-express';
-import * as express from 'express';
+import { ValidationPipe } from '@nestjs/common';
 
-const server = express();
+async function bootstrap() {
+  const app = await NestFactory.create(AppModule);
 
-export async function bootstrap() {
-  const app = await NestFactory.create(AppModule, new ExpressAdapter(server));
-
+  app.useGlobalPipes(new ValidationPipe());
   app.enableCors({
     origin: 'https://fincheck-frontend-92rs.onrender.com',
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
@@ -15,11 +15,7 @@ export async function bootstrap() {
     credentials: true,
   });
 
-  await app.init();
-  return server;
+  await app.listen(3000);
 }
 
-// Só executa localmente
-if (require.main === module) {
-  bootstrap().then((server) => server.listen(3000));
-}
+bootstrap();
